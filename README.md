@@ -31,4 +31,4 @@ The project is divided into several key backend components:
 
 ## License
 
-This project is licensed under the Apache License.
+This project is licensed under the Apache 2.0 License.
