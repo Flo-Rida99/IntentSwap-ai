@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: Apache 2.0
+
+pragma solidity ^0.8.0;
+
+contract IntentSwapMVP {
+    struct Intent {
+        address user;
+        address sourceToken;
+        address targetToken;
+        uint256 amount;
+        uint256 minReturn;
+        uint256 deadline;
+        bool executed;
+    }
+
+    mapping(address => Intent) public intents;
+
+    event IntentCreated(
+        address indexed user,
+        address sourceToken,
+        address targetToken,
+        uint256 amount,
+        uint256 minReturn,
+        uint256 deadline
+    );
+    event IntentExecuted(
+        address indexed user,
+        address sourceToken,
+        address targetToken,
+        uint256 amount,
+        uint256 minReturn
+    );
+    event IntentCancelled(address indexed user);
+
+    // Create a new swap intent
+    function createIntent(
+        address _sourceToken,
+        address _targetToken,
+        uint256 _amount,
+        uint256 _minReturn,
+        uint256 _deadline
+    ) external {
+        require(_deadline > block.timestamp, "Deadline must be in the future");
+        Intent memory newIntent = Intent({
+            user: msg.sender,
+            sourceToken: _sourceToken,
+            targetToken: _targetToken,
+            amount: _amount,
+            minReturn: _minReturn,
+            deadline: _deadline,
+            executed: false
+        });
+        intents[msg.sender] = newIntent;
+        emit IntentCreated(msg.sender, _sourceToken, _targetToken, _amount, _minReturn, _deadline);
+    }
+
+    // Cancel an existing swap intent
+    function cancelIntent() external {
+        require(intents[msg.sender].user == msg.sender, "No active intent found");
+        delete intents[msg.sender];
+        emit IntentCancelled(msg.sender);
+    }
+
+    // Execute the swap intent (simulation)
+    function executeIntent() external {
+        Intent storage intent = intents[msg.sender];
+        require(intent.user == msg.sender, "No active intent found");
+        require(!intent.executed, "Intent already executed");
+        require(block.timestamp <= intent.deadline, "Intent has expired");
+
+        // Placeholder: In a real implementation, add swap logic here.
+        intent.executed = true;
+        emit IntentExecuted(msg.sender, intent.sourceToken, intent.targetToken, intent.amount, intent.minReturn);
+    }
+}
